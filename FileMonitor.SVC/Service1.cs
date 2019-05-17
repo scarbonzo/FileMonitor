@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using FileMonitor.SVC.Models;
 
 namespace FileMonitor.SVC
 {
@@ -60,7 +62,43 @@ namespace FileMonitor.SVC
 
         private void Routine()
         {
-            //do stuff here
+            var files = ScanFolder(@"c:\vs");
+
+            foreach(var file in files)
+            {
+                var f = new file(file);
+            }
+        }
+
+        private static List<FileInfo> ScanFolder(string FolderPath)
+        {
+            var directories = new List<DirectoryInfo>();
+            var files = new List<FileInfo>();
+
+            try
+            {
+                directories = new DirectoryInfo(FolderPath).EnumerateDirectories().ToList();
+
+                foreach (var directory in directories)
+                {
+                    files.AddRange(ScanFolder(directory.FullName.ToString()));
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            try
+            {
+                files.AddRange(new DirectoryInfo(FolderPath).EnumerateFiles().ToList());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return files;
         }
     }
 }
