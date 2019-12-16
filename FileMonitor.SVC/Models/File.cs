@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FileMonitor.SVC.Models
 {
     public class file
     {
-        public file(System.IO.FileInfo file)
+        public file(string servername, System.IO.FileInfo file)
         {
             Id = Guid.NewGuid();
             Name = file.Name;
@@ -22,8 +19,9 @@ namespace FileMonitor.SVC.Models
             Accessed = file.LastAccessTime;
             Owner = System.IO.File.GetAccessControl(file.FullName).GetOwner(typeof(System.Security.Principal.NTAccount)).ToString();
             Checksum = GenerateChecksum(file.FullName);
-            LastPolled = DateTime.Now;
+            LastSeen = DateTime.Now;
             HashCode = file.GetHashCode();
+            ServerName = servername;
         }
 
         public Guid Id { get; set; }
@@ -38,7 +36,8 @@ namespace FileMonitor.SVC.Models
         public string Owner { get; set; }
         public string Checksum { get; set; }
         public int HashCode { get; set; }
-        public DateTime LastPolled { get; set; }
+        public DateTime LastSeen { get; set; }
+        public string ServerName { get; set; }
 
         public static string GenerateChecksum(string filename)
         {

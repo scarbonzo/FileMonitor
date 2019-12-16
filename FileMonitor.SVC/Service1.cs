@@ -1,22 +1,18 @@
-﻿using System;
+﻿using FileMonitor.SVC.Models;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceProcess;
-using System.Text;
-using System.Threading.Tasks;
-using FileMonitor.SVC.Models;
 
 namespace FileMonitor.SVC
 {
     public partial class Service1 : ServiceBase
     {
         //Service Timer Info
-        private System.Timers.Timer m_mainTimer;
-        private int interval = 15 * 1000; //How often to run in milliseconds (seconds * 1000)
+        private static System.Timers.Timer m_mainTimer;
+        private static int interval = 86400 * 1000; //How often to run in milliseconds (seconds * 1000)
+        private static string ServerName = Environment.MachineName;
 
         public Service1()
         {
@@ -31,8 +27,10 @@ namespace FileMonitor.SVC
                 //Set the timer interval
                 Interval = interval
             };
+            
             //Dictate what to do when the event fires
             m_mainTimer.Elapsed += m_mainTimer_Elapsed;
+            
             //Something to do with something, I forgot since it's been a while
             m_mainTimer.AutoReset = true;
 
@@ -62,18 +60,16 @@ namespace FileMonitor.SVC
 
         private void Routine()
         {
-            var files = ScanFolder(@"c:\vs");
-
-            foreach(var file in files)
-            {
-                var f = new file(file);
-            }
+            //TODO: Use a table to store paths and call them here, ideally each servername would map to a set of locations
+            var files = ScanFolder(@"C:\temp\ssl");
+            
+            //TODO: Create an entity hook to write the file list to. 
         }
 
-        private static List<FileInfo> ScanFolder(string FolderPath)
+        private static List<file> ScanFolder(string FolderPath)
         {
             var directories = new List<DirectoryInfo>();
-            var files = new List<FileInfo>();
+            var files = new List<file>();
 
             try
             {
@@ -91,7 +87,12 @@ namespace FileMonitor.SVC
 
             try
             {
-                files.AddRange(new DirectoryInfo(FolderPath).EnumerateFiles().ToList());
+                var fileinfos = new DirectoryInfo(FolderPath).EnumerateFiles().ToList();
+
+                foreach (var fileinfo in fileinfos)
+                {
+                    files.Add(new file(ServerName, fileinfo));
+                }
             }
             catch (Exception e)
             {
